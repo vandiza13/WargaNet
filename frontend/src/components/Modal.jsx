@@ -1,29 +1,42 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import Icon from './Icon'; // Kita impor komponen Ikon
 
-const Modal = ({ isOpen, onClose, title, children, icon }) => { // Tambahkan 'icon' sebagai properti baru
-    if (!isOpen) return null;
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-start justify-center z-50 p-4 pt-15">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col animate-fade-in-up">
-                <div className="flex justify-between items-center p-5 border-b border-gray-200">
-                    {/* Grupkan ikon dan judul */}
-                    <div className="flex items-center gap-3">
-                        {icon && <Icon name={icon} className="w-6 h-6 text-primary-600" />}
-                        <h3 className="text-xl font-bold text-gray-800">{title}</h3>
-                    </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                        <X className="w-6 h-6" />
-                    </button>
-                </div>
-                <div className="p-6 overflow-y-auto">
-                    {children}
-                </div>
+export default function Modal({ isOpen, onClose, title, children, icon: Icon }) {
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
+        onClick={onClose}
+      ></div>
+
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white">
+            <div className="flex items-center gap-3">
+              {Icon && <Icon size={24} className="text-blue-600" />}
+              <h2 className="text-xl font-bold text-gray-900">{title}</h2>
             </div>
-        </div>
-    );
-};
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X size={24} className="text-gray-500" />
+            </button>
+          </div>
 
-export default Modal;
+          {/* Content */}
+          <div className="p-6">
+            {children}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
 

@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import API from '../services/api';
 import Modal from '../components/Modal';
-import { Plus } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
+import { Mail, Plus, Search } from 'lucide-react';
 
 const LettersPage = () => {
     const [requests, setRequests] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newRequest, setNewRequest] = useState({ letterType: 'Surat Domisili', notes: '' });
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showForm, setShowForm] = useState(false);
 
     const fetchRequests = async () => {
         try {
@@ -42,40 +45,110 @@ const LettersPage = () => {
         return <span className={`px-2 py-1 text-xs font-medium rounded-full ${styles[status]}`}>{status}</span>;
     };
 
-    return (
-        <div className="animate-fade-in-up">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Layanan Surat Online</h1>
-                    <p className="text-gray-500 mt-1">Ajukan permohonan surat pengantar secara digital.</p>
-                </div>
-                <button onClick={() => setIsModalOpen(true)} className="flex items-center bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">
-                    <Plus size={16} className="mr-2" /> Ajukan Surat Baru
-                </button>
-            </div>
+    const letters = [
+        {
+            id: 1,
+            title: 'Surat Keterangan Domisili',
+            description: 'Permohonan surat keterangan domisili untuk keperluan administrasi',
+            status: 'approved',
+            date: '10 Januari 2024',
+        },
+        {
+            id: 2,
+            title: 'Surat Rekomendasi',
+            description: 'Permohonan surat rekomendasi untuk keperluan pekerjaan',
+            status: 'pending',
+            date: '8 Januari 2024',
+        },
+    ];
 
-            {/* Daftar Permohonan */}
-            <div className="space-y-4">
-                {requests.map(req => (
-                    <div key={req._id} className="bg-white p-5 rounded-xl shadow-sm border">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h2 className="text-lg font-bold text-gray-800 capitalize">{req.letterType.toLowerCase()}</h2>
-                                <p className="text-sm text-gray-500 my-1">
-                                    Diajukan pada: {new Date(req.createdAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
-                                </p>
-                                <p className="text-gray-600">Keperluan: {req.notes}</p>
-                            </div>
-                            {getStatusPill(req.status)}
-                        </div>
-                    </div>
-                ))}
-                {requests.length === 0 && (
-                    <div className="text-center py-16 bg-white rounded-lg shadow-sm">
-                        <p className="text-gray-500">Anda belum pernah mengajukan permohonan surat.</p>
-                    </div>
+    const getStatusColor = (status) => {
+        const colors = {
+            pending: 'bg-yellow-100 text-yellow-800',
+            approved: 'bg-green-100 text-green-800',
+            rejected: 'bg-red-100 text-red-800',
+        };
+        return colors[status] || colors.pending;
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <PageHeader
+                title="Surat-Menyurat"
+                subtitle="Kelola permohonan surat dari komunitas Anda"
+                breadcrumbs={[
+                    { label: 'Dashboard', path: '/dashboard' },
+                    { label: 'Surat', path: '/letters' }
+                ]}
+                icon={Mail}
+                actions={[
+                    {
+                        label: 'Buat Permohonan',
+                        icon: Plus,
+                        onClick: () => setShowForm(!showForm)
+                    }
+                ]}
+            />
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                
+                {showForm && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+                    <h2 className="text-xl font-bold text-gray-900 mb-6">Buat Permohonan Surat</h2>
+                    <form className="space-y-4">
+                      <input
+                        type="text"
+                        placeholder="Jenis Surat"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                      <textarea
+                        placeholder="Deskripsi Permohonan"
+                        rows="4"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                      ></textarea>
+                      <div className="flex gap-4">
+                        <button type="submit" className="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700">
+                          Kirim
+                        </button>
+                        <button type="button" onClick={() => setShowForm(false)} className="flex-1 bg-gray-200 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-300">
+                          Batal
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 )}
+
+                <div className="mb-8">
+                  <div className="relative">
+                    <Search className="absolute left-4 top-3 text-gray-400" size={20} />
+                    <input
+                      type="text"
+                      placeholder="Cari surat..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {letters.map((letter) => (
+                    <div key={letter.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-900">{letter.title}</h3>
+                          <p className="text-gray-700 mt-2">{letter.description}</p>
+                          <p className="text-sm text-gray-500 mt-4">{letter.date}</p>
+                        </div>
+                        <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${getStatusColor(letter.status)}`}>
+                          {letter.status === 'pending' && 'Menunggu'}
+                          {letter.status === 'approved' && 'Disetujui'}
+                          {letter.status === 'rejected' && 'Ditolak'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
             </div>
 
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Ajukan Permohonan Surat" icon="FileText">

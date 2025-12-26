@@ -1,125 +1,183 @@
 import React, { useState, useEffect } from 'react';
-import API from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { Search, SlidersHorizontal, Clock, MapPin, UserCheck } from 'lucide-react';
+import { Search, Calendar, Clock, MapPin, Users } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 
 const ActivitiesPage = () => {
-    const { userInfo } = useAuth();
-    const [activities, setActivities] = useState([]);
+    const [activities, setActivities] = useState([
+        {
+            id: 1,
+            title: 'Pembersihan Lingkungan Rutin',
+            date: '2024-01-15',
+            time: '07:00 - 09:00',
+            location: 'Lingkungan RT 01',
+            participants: 25,
+            status: 'upcoming'
+        },
+        {
+            id: 2,
+            title: 'Arisan Rutin',
+            date: '2024-01-20',
+            time: '19:00 - 21:00',
+            location: 'Rumah Ibu Siti',
+            participants: 15,
+            status: 'upcoming'
+        },
+    ]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterStatus, setFilterStatus] = useState('Semua'); // 'Semua', 'Upcoming', 'Selesai'
-
-    const fetchActivities = async () => {
-        try {
-            const { data } = await API.get('/activities');
-            setActivities(data);
-        } catch (error) {
-            console.error("Gagal memuat kegiatan:", error);
-        }
-    };
-
-    useEffect(() => {
-        fetchActivities();
-    }, []);
-
-    const handleRsvp = async (activityId) => {
-        try {
-            await API.put(`/activities/${activityId}/rsvp`);
-            alert('Anda berhasil mendaftar untuk ikut kegiatan ini!');
-            fetchActivities();
-        } catch (error) {
-            alert(error.response?.data?.message || 'Gagal mendaftar');
-        }
-    };
+    const [filterStatus, setFilterStatus] = useState('Semua');
 
     const filteredActivities = activities.filter(item => {
         const matchSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        const eventDate = new Date(item.date);
-        
-        let matchStatus = true;
-        if (filterStatus === 'Upcoming') {
-            matchStatus = eventDate >= today;
-        } else if (filterStatus === 'Selesai') {
-            matchStatus = eventDate < today;
-        }
-
+        const matchStatus = filterStatus === 'Semua' || item.status === filterStatus;
         return matchSearch && matchStatus;
     });
 
-    return (
-        <div className="animate-fade-in-up">
-            {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold text-gray-800">Agenda Kegiatan</h1>
-                <p className="text-gray-500 mt-1">Jadwal dan informasi kegiatan untuk seluruh warga.</p>
-            </div>
+    const upcomingActivities = filteredActivities.filter(a => a.status === 'upcoming');
+    const completedActivities = filteredActivities.filter(a => a.status === 'completed');
 
-            {/* Filter Section */}
-            <div className="mt-6 p-4 bg-white rounded-xl shadow-sm border flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-grow">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Cari nama kegiatan..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
-                    />
-                </div>
-                <div className="relative flex-grow sm:flex-grow-0">
-                     <SlidersHorizontal className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20}/>
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('id-ID', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <PageHeader
+                title="Aktivitas Komunitas"
+                subtitle="Acara dan kegiatan komunitas Anda"
+                breadcrumbs={[
+                    { label: 'Dashboard', path: '/dashboard' },
+                    { label: 'Aktivitas', path: '/activities' }
+                ]}
+                icon={Calendar}
+            />
+
+            {/* Content */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                
+                {/* Search & Filter */}
+                <div className="mb-8 flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1 relative">
+                        <Search className="absolute left-4 top-3.5 text-gray-400" size={20} />
+                        <input
+                            type="text"
+                            placeholder="Cari nama kegiatan..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        />
+                    </div>
                     <select 
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg appearance-none bg-white"
+                        className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none min-w-40"
                     >
                         <option>Semua</option>
-                        <option>Upcoming</option>
-                        <option>Selesai</option>
+                        <option>upcoming</option>
+                        <option>completed</option>
                     </select>
                 </div>
-            </div>
 
-            {/* Activities List */}
-            <div className="mt-6 space-y-4">
-                {filteredActivities.map(item => (
-                    <div key={item._id} className="bg-white p-6 rounded-xl shadow-sm border">
-                        <div className="flex items-center gap-3 text-sm text-gray-500 mb-2">
-                           <Clock size={16} />
-                           <span>{new Date(item.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                        </div>
-                        <h2 className="text-xl font-bold text-gray-800 mb-2">{item.title}</h2>
-                        <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                            <MapPin size={16} />
-                            <span>{item.location}</span>
-                        </div>
-                        <p className="text-gray-600 text-sm mb-4">{item.description}</p>
-                        
-                        <div className="border-t pt-4 flex justify-between items-center">
-                             <div className="flex items-center text-sm text-gray-500">
-                                <UserCheck className="w-4 h-4 mr-2" />
-                                {item.participants.length} Warga Ikut
-                            </div>
-                            {!item.participants.includes(userInfo._id) && new Date(item.date) >= new Date() && (
-                                <button onClick={() => handleRsvp(item._id)} className="bg-green-500 text-white text-xs px-3 py-1.5 rounded-full hover:bg-green-600 font-semibold">
-                                    Daftar Ikut
-                                </button>
-                            )}
+                {/* Upcoming Activities */}
+                {upcomingActivities.length > 0 && (
+                    <div className="mb-12">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6">📅 Kegiatan Mendatang</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {upcomingActivities.map((activity) => (
+                                <div
+                                    key={activity.id}
+                                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg hover:border-blue-300 transition-all duration-300 group"
+                                >
+                                    <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-40 group-hover:from-blue-600 group-hover:to-indigo-700 transition-all duration-300"></div>
+                                    
+                                    <div className="p-6">
+                                        <h3 className="text-lg font-bold text-gray-900 mb-4 -mt-10 relative z-10 bg-white px-4 py-2 rounded-lg inline-block shadow-md">
+                                            {activity.title}
+                                        </h3>
+                                        
+                                        <div className="space-y-3 mt-4 text-gray-600">
+                                            <div className="flex items-center gap-3">
+                                                <Calendar size={18} className="text-blue-600 flex-shrink-0" />
+                                                <span className="text-sm">{formatDate(activity.date)}</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <Clock size={18} className="text-blue-600 flex-shrink-0" />
+                                                <span className="text-sm">{activity.time}</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <MapPin size={18} className="text-blue-600 flex-shrink-0" />
+                                                <span className="text-sm">{activity.location}</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <Users size={18} className="text-blue-600 flex-shrink-0" />
+                                                <span className="text-sm">{activity.participants} peserta</span>
+                                            </div>
+                                        </div>
+
+                                        <button className="w-full mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-2.5 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg">
+                                            ✅ Daftar Kegiatan
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
-                ))}
-                 {filteredActivities.length === 0 && (
-                    <div className="text-center py-16 bg-white rounded-lg shadow-sm">
-                        <Search className="mx-auto text-gray-300" size={48}/>
-                        <h3 className="mt-2 text-lg font-medium text-gray-800">Tidak Ditemukan</h3>
-                        <p className="mt-1 text-sm text-gray-500">Kegiatan yang Anda cari tidak ditemukan.</p>
+                )}
+
+                {/* Completed Activities */}
+                {completedActivities.length > 0 && (
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6">✨ Kegiatan Selesai</h2>
+                        <div className="space-y-4">
+                            {completedActivities.map((activity) => (
+                                <div key={activity.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                                    <div className="flex items-start justify-between gap-6">
+                                        <div className="flex-1">
+                                            <h3 className="text-lg font-bold text-gray-900 mb-4">{activity.title}</h3>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar size={16} className="text-gray-400" />
+                                                    {formatDate(activity.date)}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Clock size={16} className="text-gray-400" />
+                                                    {activity.time}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <MapPin size={16} className="text-gray-400" />
+                                                    {activity.location}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Users size={16} className="text-gray-400" />
+                                                    {activity.participants} peserta
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span className="bg-gray-100 text-gray-700 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
+                                            ✓ Selesai
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Empty State */}
+                {filteredActivities.length === 0 && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                        <Calendar size={48} className="mx-auto text-gray-300 mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-600">Tidak ada kegiatan</h3>
+                        <p className="text-gray-500 text-sm mt-2">Tidak ada kegiatan yang sesuai dengan pencarian Anda</p>
                     </div>
                 )}
             </div>
         </div>
     );
 };
+
 export default ActivitiesPage;

@@ -1,14 +1,11 @@
 // src/components/AuthPage.jsx
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext'; // Import mundur satu folder ke context
+import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Home } from 'lucide-react';
+import { Home, Mail, Lock, User, Home as HomeIcon, AlertCircle, CheckCircle } from 'lucide-react';
 
 const AuthPage = () => {
-    // State untuk mode (Login vs Register)
     const [isLoginMode, setIsLoginMode] = useState(true);
-    
-    // State form dan feedback
     const [formData, setFormData] = useState({ 
         email: '', 
         password: '', 
@@ -17,12 +14,11 @@ const AuthPage = () => {
     });
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    // Hooks
     const { login, register } = useAuth();
     const navigate = useNavigate();
 
-    // Reset form saat ganti mode
     const toggleMode = () => {
         setIsLoginMode(!isLoginMode);
         setError('');
@@ -34,122 +30,167 @@ const AuthPage = () => {
         e.preventDefault();
         setError('');
         setMessage('');
+        setIsLoading(true);
 
         try {
             if (isLoginMode) {
-                // LOGIKA LOGIN
                 await login(formData.email, formData.password);
-                // Jika sukses, redirect ke dashboard
-                navigate('/dashboard'); 
+                navigate('/dashboard');
             } else {
-                // LOGIKA REGISTER
                 await register(formData.nama, formData.noRumah, formData.email, formData.password);
-                setMessage('Pendaftaran berhasil! Silakan tunggu persetujuan admin atau coba login.');
-                // Kembalikan ke mode login agar user bisa langsung login (opsional)
+                setMessage('✅ Pendaftaran berhasil! Silakan login dan tunggu persetujuan admin.');
                 setIsLoginMode(true);
                 setFormData({ email: '', password: '', nama: '', noRumah: '' });
             }
         } catch (err) {
-            // Menangkap error dari backend
-            setError(err.toString());
+            setError(err?.message || 'Terjadi kesalahan. Coba lagi.');
+        } finally {
+            setIsLoading(false);
         }
     };
     
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 font-sans">
-            <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 animate-fade-in-up">
-                 
-                 {/* Header Logo */}
-                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-blue-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg text-white">
-                        <Home className="w-8 h-8" />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4">
+            <div className="w-full max-w-md">
+                
+                {/* Card */}
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                    
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-12 text-center">
+                        <div className="w-16 h-16 bg-white rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
+                            <Home size={32} className="text-blue-600" />
+                        </div>
+                        <h1 className="text-3xl font-bold text-white mb-2">WargaNet</h1>
+                        <p className="text-blue-100 text-sm">Sistem Informasi Komunitas Warga</p>
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-800">WargaNet</h1>
-                    <p className="text-gray-500">Sistem Informasi Komunitas Warga</p>
+
+                    {/* Form Container */}
+                    <div className="p-8">
+                        
+                        {/* Messages */}
+                        {error && (
+                            <div className="mb-6 flex gap-3 bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg animate-shake">
+                                <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold text-sm">Error</p>
+                                    <p className="text-sm">{error}</p>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {message && (
+                            <div className="mb-6 flex gap-3 bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg">
+                                <CheckCircle size={20} className="flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold text-sm">Berhasil</p>
+                                    <p className="text-sm">{message}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Form */}
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            
+                            {/* Register Only Fields */}
+                            {!isLoginMode && (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
+                                        <div className="relative">
+                                            <User size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                                            <input 
+                                                type="text" 
+                                                placeholder="Cth: Budi Santoso" 
+                                                required 
+                                                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" 
+                                                value={formData.nama} 
+                                                onChange={e => setFormData({ ...formData, nama: e.target.value })} 
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Nomor Rumah</label>
+                                        <div className="relative">
+                                            <HomeIcon size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                                            <input 
+                                                type="text" 
+                                                placeholder="Cth: A1/10" 
+                                                required 
+                                                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" 
+                                                value={formData.noRumah} 
+                                                onChange={e => setFormData({ ...formData, noRumah: e.target.value })} 
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Email */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <div className="relative">
+                                    <Mail size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                                    <input 
+                                        type="email" 
+                                        placeholder="nama@email.com" 
+                                        required 
+                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" 
+                                        value={formData.email} 
+                                        onChange={e => setFormData({ ...formData, email: e.target.value })} 
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Password */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                <div className="relative">
+                                    <Lock size={18} className="absolute left-3 top-3.5 text-gray-400" />
+                                    <input 
+                                        type="password" 
+                                        placeholder="••••••••" 
+                                        required 
+                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" 
+                                        value={formData.password} 
+                                        onChange={e => setFormData({ ...formData, password: e.target.value })} 
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Submit Button */}
+                            <button 
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-semibold py-3 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg disabled:cursor-not-allowed mt-6"
+                            >
+                                {isLoading ? 'Proses...' : (isLoginMode ? '🔐 Masuk' : '✏️ Daftar Akun')}
+                            </button>
+                        </form>
+
+                        {/* Toggle Mode */}
+                        <div className="mt-8 text-center">
+                            <p className="text-gray-600 text-sm mb-3">
+                                {isLoginMode ? 'Belum punya akun?' : 'Sudah punya akun?'}
+                            </p>
+                            <button 
+                                type="button"
+                                onClick={toggleMode}
+                                className="text-blue-600 hover:text-blue-700 font-semibold text-sm hover:underline transition"
+                            >
+                                {isLoginMode ? '📝 Daftar di sini' : '🔑 Masuk di sini'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="bg-gray-50 px-8 py-4 border-t border-gray-200">
+                        <p className="text-center text-xs text-gray-500">
+                            © 2024 WargaNet. Semua hak dilindungi.
+                        </p>
+                    </div>
                 </div>
-
-                {/* Feedback Messages */}
-                {error && (
-                    <div className="bg-red-100 border border-red-200 text-red-700 p-3 rounded-lg mb-4 text-sm">
-                        {error}
-                    </div>
-                )}
-                {message && (
-                    <div className="bg-green-100 border border-green-200 text-green-700 p-3 rounded-lg mb-4 text-sm">
-                        {message}
-                    </div>
-                )}
-
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    {/* Field Register Only */}
-                    {!isLoginMode && (
-                        <>
-                            <div>
-                                <input 
-                                    type="text" 
-                                    placeholder="Nama Lengkap" 
-                                    required 
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none" 
-                                    value={formData.nama} 
-                                    onChange={e => setFormData({ ...formData, nama: e.target.value })} 
-                                />
-                            </div>
-                            <div>
-                                <input 
-                                    type="text" 
-                                    placeholder="Nomor Rumah (contoh: A1/10)" 
-                                    required 
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none" 
-                                    value={formData.noRumah} 
-                                    onChange={e => setFormData({ ...formData, noRumah: e.target.value })} 
-                                />
-                            </div>
-                        </>
-                    )}
-
-                    {/* Field Email & Password (Always Visible) */}
-                    <div>
-                        <input 
-                            type="email" 
-                            placeholder="Alamat Email" 
-                            required 
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none" 
-                            value={formData.email} 
-                            onChange={e => setFormData({ ...formData, email: e.target.value })} 
-                        />
-                    </div>
-                    <div>
-                        <input 
-                            type="password" 
-                            placeholder="Password" 
-                            required 
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none" 
-                            value={formData.password} 
-                            onChange={e => setFormData({ ...formData, password: e.target.value })} 
-                        />
-                    </div>
-
-                    {/* Submit Button */}
-                    <button 
-                        type="submit" 
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                    >
-                        {isLoginMode ? 'Masuk' : 'Daftar Akun'}
-                    </button>
-                </form>
-
-                {/* Toggle Login/Register */}
-                <p className="mt-8 text-center text-sm text-gray-600">
-                    {isLoginMode ? 'Belum punya akun?' : 'Sudah punya akun?'}
-                    <button 
-                        type="button"
-                        onClick={toggleMode}
-                        className="font-semibold text-blue-600 hover:text-blue-700 ml-1 hover:underline focus:outline-none"
-                    >
-                        {isLoginMode ? 'Daftar di sini' : 'Masuk di sini'}
-                    </button>
-                </p>
             </div>
         </div>
     );

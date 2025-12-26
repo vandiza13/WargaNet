@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
+import PageHeader from '../components/PageHeader';
 import { PlusCircle, Trash2, Wallet, TrendingUp, TrendingDown, CircleDollarSign } from 'lucide-react';
 
 const StatCard = ({ icon: Icon, title, value, color }) => {
@@ -65,57 +66,57 @@ const FinancialReportPage = () => {
     };
     
     return (
-        <div className="animate-fade-in-up">
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Laporan Keuangan Kas RT</h1>
-                    <p className="text-gray-500 mt-1">Transparansi keuangan dan iuran warga untuk kemajuan bersama</p>
-                </div>
-                {userInfo.role === 'admin' && (
-                    <button onClick={() => setIsModalOpen(true)} className="flex items-center bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">
-                        <PlusCircle className="w-5 h-5 mr-2" /> Tambah Transaksi
-                    </button>
-                )}
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <StatCard icon={Wallet} title="Saldo Kas" value={stats.netBalance} color="blue" />
-                <StatCard icon={TrendingUp} title="Pemasukan Bulan Ini" value={stats.monthlyIncome} color="green" />
-                <StatCard icon={TrendingDown} title="Pengeluaran Bulan Ini" value={stats.monthlyExpense} color="red" />
-                <StatCard icon={CircleDollarSign} title="Net Balance" value={stats.monthlyIncome - stats.monthlyExpense} color="blue" />
-            </div>
+        <div className="min-h-screen bg-gray-50 animate-fade-in-up">
+            <PageHeader
+                title="Laporan Keuangan"
+                subtitle="Transparansi keuangan komunitas Anda"
+                breadcrumbs={[
+                    { label: 'Dashboard', path: '/dashboard' },
+                    { label: 'Laporan Keuangan', path: '/financial-report' }
+                ]}
+                icon={TrendingUp}
+            />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                 <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border">
-                    <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-                        <h2 className="text-lg font-bold text-gray-800">Riwayat Transaksi</h2>
-                        <div className="flex items-center gap-2">
-                            <input type="month" name="month" value={filters.month} onChange={handleFilterChange} className="p-2 border rounded-lg text-sm" />
-                             <select name="category" value={filters.category} onChange={handleFilterChange} className="p-2 border rounded-lg text-sm bg-white">
-                                <option>Semua Kategori</option><option>Iuran Warga</option><option>Sumbangan</option>
-                                <option>Kegiatan</option><option>Operasional</option><option>Infrastruktur</option>
-                                <option>Sosial</option><option>Lainnya</option>
-                            </select>
-                            <select name="type" value={filters.type} onChange={handleFilterChange} className="p-2 border rounded-lg text-sm bg-white">
-                                <option>Semua Jenis</option><option>Pemasukan</option><option>Pengeluaran</option>
-                            </select>
-                        </div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <p className="text-gray-600 text-sm font-medium">Pemasukan Bulan Ini</p>
+                        <p className="text-3xl font-bold text-green-600 mt-2">Rp {new Intl.NumberFormat('id-ID').format(stats.monthlyIncome)}</p>
                     </div>
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <p className="text-gray-600 text-sm font-medium">Pengeluaran Bulan Ini</p>
+                        <p className="text-3xl font-bold text-red-600 mt-2">Rp {new Intl.NumberFormat('id-ID').format(stats.monthlyExpense)}</p>
+                    </div>
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <p className="text-gray-600 text-sm font-medium">Saldo Tersisa</p>
+                        <p className="text-3xl font-bold text-blue-600 mt-2">Rp {new Intl.NumberFormat('id-ID').format(stats.netBalance)}</p>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 className="text-xl font-bold text-gray-900 mb-6">Riwayat Transaksi</h2>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="border-b text-sm text-gray-500">
-                                    <th className="p-3 font-medium">Tanggal</th>
-                                    <th className="p-3 font-medium">Deskripsi</th>
-                                    <th className="p-3 font-medium text-right">Jumlah</th>
+                        <table className="w-full text-sm">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left font-semibold text-gray-700">Tanggal</th>
+                                    <th className="px-6 py-3 text-left font-semibold text-gray-700">Keterangan</th>
+                                    <th className="px-6 py-3 text-left font-semibold text-gray-700">Tipe</th>
+                                    <th className="px-6 py-3 text-right font-semibold text-gray-700">Jumlah</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {transactions.map(tx => (
-                                    <tr key={tx._id} className="border-b hover:bg-gray-50">
-                                        <td className="p-3 text-sm text-gray-600">{new Date(tx.date).toLocaleDateString('id-ID')}</td>
-                                        <td className="p-3 text-sm">{tx.description}</td>
-                                        <td className={`p-3 text-sm font-semibold text-right ${tx.type === 'Pemasukan' ? 'text-green-600' : 'text-red-600'}`}>
+                                    <tr key={tx._id} className="border-t hover:bg-gray-50">
+                                        <td className="px-6 py-4">{new Date(tx.date).toLocaleDateString('id-ID')}</td>
+                                        <td className="px-6 py-4">{tx.description}</td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${tx.type === 'Pemasukan' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                {tx.type === 'Pemasukan' ? 'Masuk' : 'Keluar'}
+                                            </span>
+                                        </td>
+                                        <td className={`px-6 py-4 text-right font-semibold ${tx.type === 'Pemasukan' ? 'text-green-600' : 'text-red-600'}`}>
                                             {tx.type === 'Pemasukan' ? '+' : '-'} Rp {new Intl.NumberFormat('id-ID').format(tx.amount)}
                                         </td>
                                     </tr>
@@ -125,13 +126,7 @@ const FinancialReportPage = () => {
                         {transactions.length === 0 && <p className="text-center text-gray-500 py-8">Tidak ada transaksi yang cocok dengan filter.</p>}
                     </div>
                 </div>
-                
-                {userInfo.role === 'warga' && <WargaDuesStatus />}
             </div>
-
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Tambah Transaksi Baru">
-                {/* ... (kode modal tetap sama) ... */}
-            </Modal>
         </div>
     );
 };

@@ -1,14 +1,36 @@
 import React from 'react';
-import * as LucideIcons from 'lucide-react';
+import {
+  Home, FileText, AlertCircle, Mail, Users, ShoppingBag,
+  TrendingUp, MessageSquare, Calendar, Clock, MapPin,
+  Megaphone, Settings, Edit, Trash2, Plus, Search
+} from 'lucide-react';
 
-const Icon = ({ name, ...props }) => {
-    // Menambahkan ikon yang mungkin tidak ada di versi lama
-    const AllIcons = { ...LucideIcons, Wallet: LucideIcons.Wallet || LucideIcons.CreditCard, Store: LucideIcons.Store || LucideIcons.Home, ClipboardCheck: LucideIcons.ClipboardCheck || LucideIcons.Clipboard, BookCopy: LucideIcons.BookCopy || LucideIcons.Book };
-    const LucideIcon = AllIcons[name];
-    if (!LucideIcon) {
-        return <LucideIcons.HelpCircle {...props} />; // Fallback icon
-    }
-    return <LucideIcon {...props} />;
+const iconMap = {
+  home: Home,
+  fileText: FileText,
+  alert: AlertCircle,
+  mail: Mail,
+  users: Users,
+  shopping: ShoppingBag,
+  trending: TrendingUp,
+  message: MessageSquare,
+  calendar: Calendar,
+  clock: Clock,
+  location: MapPin,
+  megaphone: Megaphone,
+  settings: Settings,
+  edit: Edit,
+  delete: Trash2,
+  plus: Plus,
+  search: Search,
 };
 
-export default Icon;
+export default function Icon({ name, className = 'w-6 h-6' }) {
+  const IconComponent = iconMap[name];
+  
+  if (!IconComponent) {
+    return null;
+  }
+
+  return <IconComponent className={className} />;
+}

@@ -2,13 +2,12 @@ import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
-// --- PERBAIKAN IMPORT PATH DI SINI ---
-// Berdasarkan gambar folder Anda, file ini ada di folder 'ui'
-import Layout from './components/ui/Layout'; 
-import AuthPage from './components/ui/AuthPage'; 
-import WaitingApprovalPage from './components/ui/WaitingApprovalPage'; 
+// Import komponen dari folder components (bukan components/ui)
+import Layout from './components/Layout'; 
+import AuthPage from './components/AuthPage'; 
+import WaitingApprovalPage from './components/WaitingApprovalPage'; 
 
-// Halaman (Pages) sepertinya tetap di folder 'pages', jadi ini aman
+// Halaman (Pages)
 import DashboardPage from './pages/DashboardPage';
 import AnnouncementsPage from './pages/AnnouncementsPage';
 import ComplaintsPage from './pages/ComplaintsPage';
