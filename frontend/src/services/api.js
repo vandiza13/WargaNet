@@ -1,15 +1,20 @@
+// src/services/api.js
 import axios from 'axios';
 
-const API = axios.create({
-    baseURL: 'http://localhost:4000/api', // Sesuaikan jika backend berjalan di port lain
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api', // Ambil dari .env
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-API.interceptors.request.use((req) => {
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
-        req.headers.Authorization = `Bearer ${JSON.parse(userInfo).token}`;
-    }
-    return req;
+// Otomatis sisipkan Token setiap request (jika user sudah login)
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
-export default API;
+export default api;

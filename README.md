@@ -46,9 +46,3 @@ npm install
 npm run dev
 ```
 Aplikasi frontend akan berjalan di `http://localhost:5173`.
-
-### Akun Admin Default
-
-Saat backend pertama kali dijalankan, akun admin default akan dibuat:
-- **Email:** `admin@warga.app`
-- **Password:** `admin123`
